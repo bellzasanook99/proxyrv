@@ -1,0 +1,15 @@
+1. ตรวจสอบการตั้งค่า DNS/ชื่อโฮสต์
+บนเครื่องที่ต้องการเข้าใช้งาน:
+แก้ไขไฟล์ hosts (ต้องใช้สิทธิ์ administrator)
+
+Windows: C:\Windows\System32\drivers\etc\hosts
+
+Linux/Mac: /etc/hosts
+
+เพิ่มบรรทัดนี้ (เปลี่ยน IP เป็น IP จริงของเซิร์ฟเวอร์):
+
+text
+192.168.1.100 web-app.local
+
+
+git remote add origin https://github.com/bellzasanook99/proxyrv.git
