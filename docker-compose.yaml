@@ -1,31 +1,44 @@
+version: '3.8'
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
+  # Traefik (Ingress Controller)
+  traefik:
+    image: traefik:v2.10
+    command:
+      - --api.insecure=true          # เปิด Dashboard (ใช้ชั่วคราว)
+      - --providers.docker=true      # ใช้ Docker เป็น Provider
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"                     # HTTP
+      - "443:443"                    # HTTPS
+      - "8080:8080"                 # Traefik Dashboard
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - web-app  # ต้องมีบรรทัดนี้
-    networks:
-      - proxy-network
+      - /var/run/docker.sock:/var/run/docker.sock  # ให้ Traefik ดู Docker Containers
 
-  web-app:
+  # ตัวอย่าง Service 1 (Web App)
+  webapp:
     build: ./webapp
-    expose:
-      - "80"  # เปิดเฉพาะภายใน Docker network
+    labels:
+      - "traefik.enable=true"                           # เปิดใช้งาน Traefik
+      - "traefik.http.routers.webapp.rule=Host(`app.example.com`)"  # ใช้โดเมนนี้
+      - "traefik.http.routers.webapp.entrypoints=web"   # ใช้พอร์ต 80
     networks:
-      - proxy-network
-    environment:
-      - NGINX_PORT=80
+      - proxyrv_default  # ใช้ network เดียวกับ Traefik
+
+  # ตัวอย่าง Service 2 (API)
+  webappapp:
+    build: ./webappapp
+    volumes:
+      - ./webappapp/src:/usr/share/nginx/html  # สำหรับ Nginx แก้ หน้าเว็ปไม่เปลี่ย แคสค้าง
+    # image: my-api:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webappapp.rule=Host(`api.example.com`)"
+      - "traefik.http.routers.webappapp.entrypoints=web"
+    networks:
+      - proxyrv_default  # ใช้ network เดียวกับ Traefik
 
 networks:
-  proxy-network:
-    driver: bridge
-
-volumes:
-  ssl:
+  proxyrv_default:
+    external: true

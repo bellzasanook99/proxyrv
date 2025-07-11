@@ -1,0 +1,29 @@
+# ใช้ image ฐานของ .NET SDK สำหรับการ build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# คัดลอกไฟล์ project และ restore dependencies
+COPY *.sln .
+COPY ["MyWebApi/MyWebApi.csproj", "MyWebApi/"]
+RUN dotnet restore "MyWebApi/MyWebApi.csproj"
+
+# คัดลอกไฟล์ทั้งหมดและ build
+COPY . .
+WORKDIR "/src/MyWebApi"
+RUN dotnet build "MyWebApi.csproj" -c Release -o /app/build
+
+# Publish
+FROM build AS publish
+RUN dotnet publish "MyWebApi.csproj" -c Release -o /app/publish
+
+# ใช้ image ฐานของ .NET runtime สำหรับการรัน
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+
+# คัดลอกไฟล์จากขั้นตอน publish
+COPY --from=publish /app/publish .
+
+EXPOSE 5014
+
+# กำหนดคำสั่งเริ่มต้น
+ENTRYPOINT ["dotnet", "MyWebApi.dll"]
