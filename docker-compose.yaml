@@ -21,12 +21,12 @@ services:
     build: ./webapp
     labels:
       - "traefik.enable=true"                           # เปิดใช้งาน Traefik
-      - "traefik.http.routers.webapp.rule=Host(`app.example.com`)"  # ใช้โดเมนนี้
+      - "traefik.http.routers.webapp.rule=(Host(`www.farmingrobotic.com`) && PathPrefix(`/`))"  # ใช้โดเมนนี้
       - "traefik.http.routers.webapp.entrypoints=web"   # ใช้พอร์ต 80
     networks:
       - proxyrv_default  # ใช้ network เดียวกับ Traefik
 
-  # ตัวอย่าง Service 2 (API)
+  # ตัวอย่าง Service 2 (web2)
   webappapp:
     build: ./webappapp
     volumes:
@@ -34,10 +34,28 @@ services:
     # image: my-api:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webappapp.rule=Host(`api.example.com`)"
+      - "traefik.http.routers.webappapp.rule=(Host(`www.farmingrobotic.com`) && PathPrefix(`/web`))"
       - "traefik.http.routers.webappapp.entrypoints=web"
+      - "traefik.http.services.webappapp.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.webappapp-stripprefix.stripprefix.prefixes=/web"
+      - "traefik.http.routers.webappapp.middlewares=webappapp-stripprefix"
     networks:
       - proxyrv_default  # ใช้ network เดียวกับ Traefik
+
+      # ตัวอย่าง Service 3 (API)
+  myweb:
+    image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.myweb.rule=(Host(`www.farmingrobotic.com`) && PathPrefix(`/api`))"
+      - "traefik.http.routers.myweb.entrypoints=web"
+      - "traefik.http.services.myweb.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.myweb-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.myweb.middlewares=myweb-stripprefix"
+    networks:
+      - proxyrv_default  # ใช้ network เดียวกับ Traefik
+    expose:
+      - 8080
 
 networks:
   proxyrv_default:
