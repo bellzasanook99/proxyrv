@@ -8,6 +8,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - web-app  # ต้องมีบรรทัดนี้
     networks:
@@ -15,8 +16,8 @@ services:
 
   web-app:
     build: ./webapp
-    ports:
-      - "3000:80"  # เปิดเผยพอร์ตสำหรับทดสอบโดยตรง
+    expose:
+      - "80"  # เปิดเฉพาะภายใน Docker network
     networks:
       - proxy-network
     environment:
@@ -25,3 +26,6 @@ services:
 networks:
   proxy-network:
     driver: bridge
+
+volumes:
+  ssl:
