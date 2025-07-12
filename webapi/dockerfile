@@ -23,7 +23,7 @@ WORKDIR /app
 # คัดลอกไฟล์จากขั้นตอน publish
 COPY --from=publish /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:5014
-EXPOSE 5014
+ENV ASPNETCORE_URLS=http://+:80
+EXPOSE 80
 # กำหนดคำสั่งเริ่มต้น
 ENTRYPOINT ["dotnet", "MyWebApi.dll"]

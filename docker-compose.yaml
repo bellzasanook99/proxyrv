@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # Traefik (Ingress Controller)
@@ -43,19 +42,23 @@ services:
       - proxyrv_default  # ใช้ network เดียวกับ Traefik
 
       # ตัวอย่าง Service 3 (API)
-  myweb:
-    image: mcr.microsoft.com/dotnet/samples:aspnetapp
+  myweb: #net8
+    build: ./webapi
+    #image: my-web-app:latest
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.myweb.rule=(Host(`www.farmingrobotic.com`) && PathPrefix(`/api`))"
       - "traefik.http.routers.myweb.entrypoints=web"
-      - "traefik.http.services.myweb.loadbalancer.server.port=8080"
+      - "traefik.http.services.myweb.loadbalancer.server.port=80"
       - "traefik.http.middlewares.myweb-stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.myweb.middlewares=myweb-stripprefix"
     networks:
       - proxyrv_default  # ใช้ network เดียวกับ Traefik
-    expose:
-      - 8080
+ 
 
 networks:
   proxyrv_default:
