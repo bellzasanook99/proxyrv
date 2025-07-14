@@ -13,3 +13,45 @@ text
 
 
 git remote add origin https://github.com/bellzasanook99/proxyrv.git
+
+
+
+วิธีการเปิดใช้งาน mDNS บน Linux
+1. ใช้ Avahi (การติดตั้งที่พบมากที่สุด)
+bash
+# ติดตั้ง Avahi บน Debian/Ubuntu
+sudo apt update
+sudo apt install avahi-daemon
+
+# เริ่มการทำงานและเปิดใช้งานเมื่อบูตระบบ
+sudo systemctl enable --now avahi-daemon
+2. ใช้ systemd-resolved (ในระบบที่ใช้ systemd)
+bash
+# เปิดใช้งาน mDNS ใน systemd-resolved
+sudo systemctl enable --now systemd-resolved
+จากนั้นแก้ไขไฟล์ /etc/systemd/resolved.conf:
+
+text
+[Resolve]
+MulticastDNS=yes
+แล้วรีสตาร์ทบริการ:
+
+bash
+sudo systemctl restart systemd-resolved
+3. ตรวจสอบการทำงาน
+bash
+# ตรวจสอบว่า mDNS ทำงานอยู่
+systemctl status avahi-daemon  # หรือ systemd-resolved
+
+# ทดสอบด้วยการ ping ชื่อเครื่องอื่นในเครือข่าย
+ping hostname.local
+4. ตั้งค่าไฟร์วอลล์ (ถ้าจำเป็น)
+bash
+# อนุญาต mDNS traffic (พอร์ต 5353/UDP)
+sudo ufw allow 5353/udp
+หมายเหตุ
+mDNS ใช้ได้ดีในเครือข่ายท้องถิ่นขนาดเล็ก
+
+ชื่อโฮสต์ต้องลงท้ายด้วย .local (เช่น mypc.local)
+
+บาง Linux distribution อาจมี mDNS เปิดใช้งานอยู่แล้ว
